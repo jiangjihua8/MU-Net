@@ -12,18 +12,18 @@ import os
 import time
 import warnings
 import math
-from pynvml import *  # Import for NVIDIA GPU monitoring
+# from pynvml import *  # Import for NVIDIA GPU monitoring - COMMENTED
 
 warnings.filterwarnings('ignore')
 
 class Exp_Main(Exp_Basic):
     def __init__(self, args):
         super(Exp_Main, self).__init__(args)
-        self.train_epoch_times = []  # Store training time per epoch
-        self.inference_times = []    # Store inference time per batch
-        # Initialize NVML for GPU monitoring
-        if self.args.use_gpu and torch.cuda.is_available():
-            nvmlInit()
+        # self.train_epoch_times = []  # Store training time per epoch - COMMENTED
+        # self.inference_times = []    # Store inference time per batch - COMMENTED
+        # Initialize NVML for GPU monitoring - COMMENTED
+        # if self.args.use_gpu and torch.cuda.is_available():
+        #     nvmlInit()
 
     def _build_model(self):
         model_dict = {
@@ -48,32 +48,32 @@ class Exp_Main(Exp_Basic):
         mae_criterion = nn.L1Loss()
         return mse_criterion, mae_criterion
 
-    def _get_model_params(self):
-        """Calculate model parameters in K"""
-        total_params = sum(p.numel() for p in self.model.parameters())
-        return total_params / 1000  # Convert to K
+    # def _get_model_params(self):
+    #     """Calculate model parameters in K"""
+    #     total_params = sum(p.numel() for p in self.model.parameters())
+    #     return total_params / 1000  # Convert to K
 
-    def _get_gpu_memory(self):
-        """Get GPU memory usage in MiB for current process"""
-        if self.args.use_gpu and torch.cuda.is_available():
-            try:
-                current_pid = os.getpid()
-                device_index = torch.cuda.current_device()
-                handle = nvmlDeviceGetHandleByIndex(device_index)
-                processes = nvmlDeviceGetComputeRunningProcesses(handle)
-                for proc in processes:
-                    if proc.pid == current_pid:
-                        memory_used = proc.usedGpuMemory / 1024 / 1024
-                        return memory_used
-                print(f"No GPU memory usage found for PID: {current_pid}")
-                return 0.0
-            except NVMLError as e:
-                print(f"Failed to get GPU memory: {e}")
-                return 0.0
-            except Exception as e:
-                print(f"Other error: {e}")
-                return 0.0
-        return 0.0
+    # def _get_gpu_memory(self):
+    #     """Get GPU memory usage in MiB for current process"""
+    #     if self.args.use_gpu and torch.cuda.is_available():
+    #         try:
+    #             current_pid = os.getpid()
+    #             device_index = torch.cuda.current_device()
+    #             handle = nvmlDeviceGetHandleByIndex(device_index)
+    #             processes = nvmlDeviceGetComputeRunningProcesses(handle)
+    #             for proc in processes:
+    #                 if proc.pid == current_pid:
+    #                     memory_used = proc.usedGpuMemory / 1024 / 1024
+    #                     return memory_used
+    #             print(f"No GPU memory usage found for PID: {current_pid}")
+    #             return 0.0
+    #         except NVMLError as e:
+    #             print(f"Failed to get GPU memory: {e}")
+    #             return 0.0
+    #         except Exception as e:
+    #             print(f"Other error: {e}")
+    #             return 0.0
+    #     return 0.0
 
     def vali(self, vali_data, vali_loader, criterion, is_test=True):
         total_loss = []
@@ -130,14 +130,14 @@ class Exp_Main(Exp_Basic):
         model_optim = self._select_optimizer()
         mse_criterion, mae_criterion = self._select_criterion()
 
-        # Print model parameters
-        param_count = self._get_model_params()
-        print(f"Model Parameters: {param_count:.2f}K")
+        # Print model parameters - COMMENTED
+        # param_count = self._get_model_params()
+        # print(f"Model Parameters: {param_count:.2f}K")
 
         for epoch in range(self.args.train_epochs):
             iter_count = 0
             train_loss = []
-            epoch_start_time = time.time()
+            # epoch_start_time = time.time()  # COMMENTED
 
             self.model.train()
             for i, (batch_x, batch_y, batch_x_mark, batch_y_mark) in enumerate(train_loader):
@@ -179,14 +179,14 @@ class Exp_Main(Exp_Basic):
                 loss.backward()
                 model_optim.step()
 
-            epoch_time = time.time() - epoch_start_time
-            self.train_epoch_times.append(epoch_time)
+            # epoch_time = time.time() - epoch_start_time  # COMMENTED
+            # self.train_epoch_times.append(epoch_time)  # COMMENTED
 
             train_loss = np.average(train_loss)
             vali_loss = self.vali(vali_data, vali_loader, mae_criterion, is_test=False)
             test_loss = self.vali(test_data, test_loader, mse_criterion)
 
-            print("Epoch: {} cost time: {}".format(epoch + 1, epoch_time))
+            # print("Epoch: {} cost time: {}".format(epoch + 1, epoch_time))  # COMMENTED
             print("Epoch: {0}, Steps: {1} | Train Loss: {2:.7f} Vali Loss: {3:.7f} Test Loss: {4:.7f}".format(
                 epoch + 1, train_steps, train_loss, vali_loss, test_loss))
             early_stopping(vali_loss, self.model, path)
@@ -201,15 +201,15 @@ class Exp_Main(Exp_Basic):
         self.model.load_state_dict(torch.load(best_model_path))
         os.remove(best_model_path)
 
-        # Calculate and print training stats
-        avg_train_time = np.mean(self.train_epoch_times) if self.train_epoch_times else 0
-        gpu_memory = self._get_gpu_memory()
-        print(f"Average Training Time per Epoch: {avg_train_time:.4f}s")
-        print(f"GPU Memory Usage: {gpu_memory:.2f}MiB")
+        # Calculate and print training stats - COMMENTED
+        # avg_train_time = np.mean(self.train_epoch_times) if self.train_epoch_times else 0
+        # gpu_memory = self._get_gpu_memory()
+        # print(f"Average Training Time per Epoch: {avg_train_time:.4f}s")
+        # print(f"GPU Memory Usage: {gpu_memory:.2f}MiB")
 
-        # Cleanup NVML
-        if self.args.use_gpu and torch.cuda.is_available():
-            nvmlShutdown()
+        # Cleanup NVML - COMMENTED
+        # if self.args.use_gpu and torch.cuda.is_available():
+        #     nvmlShutdown()
 
         return self.model
 
@@ -222,7 +222,7 @@ class Exp_Main(Exp_Basic):
 
         preds = []
         trues = []
-        self.inference_times = []  # Reset inference times
+        # self.inference_times = []  # Reset inference times - COMMENTED
         folder_path = './test_results/' + setting + '/'
         if not os.path.exists(folder_path):
             os.makedirs(folder_path)
@@ -230,7 +230,7 @@ class Exp_Main(Exp_Basic):
         self.model.eval()
         with torch.no_grad():
             for i, (batch_x, batch_y, batch_x_mark, batch_y_mark) in enumerate(test_loader):
-                batch_start_time = time.time()
+                # batch_start_time = time.time()  # COMMENTED
 
                 batch_x = batch_x.float().to(self.device)
                 batch_y = batch_y.float().to(self.device)
@@ -255,8 +255,8 @@ class Exp_Main(Exp_Basic):
                 preds.append(pred)
                 trues.append(true)
 
-                inference_time = time.time() - batch_start_time
-                self.inference_times.append(inference_time)
+                # inference_time = time.time() - batch_start_time  # COMMENTED
+                # self.inference_times.append(inference_time)  # COMMENTED
 
                 if i % 20 == 0:
                     input = batch_x.detach().cpu().numpy()
@@ -269,21 +269,21 @@ class Exp_Main(Exp_Basic):
         preds = preds.reshape(-1, preds.shape[-2], preds.shape[-1])
         trues = trues.reshape(-1, trues.shape[-2], trues.shape[-1])
 
-        # Calculate metrics and stats
+        # Calculate metrics and stats - PERFORMANCE MONITORING COMMENTED
         mae, mse = metric(preds, trues)
-        param_count = self._get_model_params()
-        avg_train_time = np.mean(self.train_epoch_times) if self.train_epoch_times else 0
-        avg_inference_time = np.mean(self.inference_times) if self.inference_times else 0
-        gpu_memory = self._get_gpu_memory()
+        # param_count = self._get_model_params()  # COMMENTED
+        # avg_train_time = np.mean(self.train_epoch_times) if self.train_epoch_times else 0  # COMMENTED
+        # avg_inference_time = np.mean(self.inference_times) if self.inference_times else 0  # COMMENTED
+        # gpu_memory = self._get_gpu_memory()  # COMMENTED
 
-        # Print results
+        # Print results - PERFORMANCE MONITORING COMMENTED
         print(f'mse:{mse:.4f}, mae:{mae:.4f}')
-        print(f'Model Parameters: {param_count:.2f}K')
-        print(f'Average Training Time per Epoch: {avg_train_time:.4f}s')
-        print(f'Average Inference Time per Batch: {avg_inference_time:.4f}s')
-        print(f'GPU Memory Usage: {gpu_memory:.2f}MiB')
+        # print(f'Model Parameters: {param_count:.2f}K')  # COMMENTED
+        # print(f'Average Training Time per Epoch: {avg_train_time:.4f}s')  # COMMENTED
+        # print(f'Average Inference Time per Batch: {avg_inference_time:.4f}s')  # COMMENTED
+        # print(f'GPU Memory Usage: {gpu_memory:.2f}MiB')  # COMMENTED
 
-        # Save results
+        # Save results - PERFORMANCE MONITORING COMMENTED
         folder_path = './results/' + setting + '/'
         if not os.path.exists(folder_path):
             os.makedirs(folder_path)
@@ -291,10 +291,10 @@ class Exp_Main(Exp_Basic):
         with open("result.txt", 'a') as f:
             f.write(setting + "  \n")
             f.write(f'mse:{mse:.4f}, mae:{mae:.4f}\n')
-            f.write(f'Model Parameters: {param_count:.2f}K\n')
-            f.write(f'Average Training Time per Epoch: {avg_train_time:.4f}s\n')
-            f.write(f'Average Inference Time per Batch: {avg_inference_time:.4f}s\n')
-            f.write(f'GPU Memory Usage: {gpu_memory:.2f}MiB\n')
+            # f.write(f'Model Parameters: {param_count:.2f}K\n')  # COMMENTED
+            # f.write(f'Average Training Time per Epoch: {avg_train_time:.4f}s\n')  # COMMENTED
+            # f.write(f'Average Inference Time per Batch: {avg_inference_time:.4f}s\n')  # COMMENTED
+            # f.write(f'GPU Memory Usage: {gpu_memory:.2f}MiB\n')  # COMMENTED
             f.write('\n')
 
         # Save .npy files
@@ -302,8 +302,8 @@ class Exp_Main(Exp_Basic):
         np.save(folder_path + 'pred.npy', preds)
         np.save(folder_path + 'true.npy', trues)
 
-        # Cleanup NVML
-        if self.args.use_gpu and torch.cuda.is_available():
-            nvmlShutdown()
+        # Cleanup NVML - COMMENTED
+        # if self.args.use_gpu and torch.cuda.is_available():
+        #     nvmlShutdown()
 
         return
